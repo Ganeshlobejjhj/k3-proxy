@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
 
     const PAYLOAD = {
         "pageIndex": 1,
-        "pageSize": 50,
+        "pageSize": 10,
         "optionId": "123"
     };
 
