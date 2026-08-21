@@ -1,42 +1,63 @@
 const axios = require('axios');
 
 module.exports = async (req, res) => {
-    // CORS Headers
+    // CORS configuration
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, x-authorization'
+    );
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    const TARGET_API = 'https://01k3.com/api/game/plan/recordDetails';
+    // Target API endpoint (Aap URL query se bhi ?endpoint=getPlanInfo bhej sakte hain)
+    const endpoint = req.query.endpoint || 'recordDetails';
+    const TARGET_API = `https://01k3.com/api/game/plan/${endpoint}`;
 
-    const PAYLOAD = {
-        "pageIndex": 1,
-        "pageSize": 10,
-        "optionId": "123"
-    };
+    // Fresh Tokens from cURL
+    const AUTH_TOKEN = "bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI5MS05MzAxOTM4NDc3Iiwib3RoZXIiOm51bGwsImlkIjoxMTYzMzcsInR5cGUiOjIsImV4cCI6MTc4NzQwMTk1MywiaWF0IjoxNzg3MzE1NTUzLCJhdXRob3JpdGllcyI6W10sImp0aSI6ImZlNWJkYzY1LWI1MWEtNDRmYy04MmQ0LTM1NjNhZDcyZmJlNyJ9.QdC11ZXvO5RxgBwvEq8o2iuzwJVGsV646hVy2FfjJY-6eyuss4AzYZfrYD7Cqq_4ZZ8PwYWWPFcfsUfBmq4r_RBByVOpPtgwoyvTVTAd8yE85W-0qKV-eBVO5L6dT9zvbnYyjvFV5ZupPKwmbKghKtasOVIUlZ5AORmOzZoqWhI";
+    const X_AUTH_TOKEN = "bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI5MS05MzAxOTM4NDc3Iiwib3RoZXIiOm51bGwsImlkIjoxMTYzMzcsInR5cGUiOjIsImV4cCI6MTc4NzkyMDM1MywiaWF0IjoxNzg3MzE1NTUzLCJhdXRob3JpdGllcyI6W10sImp0aSI6IjM0ZDFkODQxLTNlNjktNGM1MS04ODA2LWE2ODBhNzk0NjIyZiJ9.INdktR96c419BFM2i2HwVrVV9aZ64x5cYLaLk4rXbZQAYaLDny4nspXIuZcPpPQ5a1Xp4FdWW4NrY8IzdrpSd6IVfRxpFUwltVl6Pa41L-zswSYMwhrAzaVp-rdtNbmPs6lcKM7iz8xRR-w-saELJL76qKmmeGgOixdyFazucb8";
 
-    const AUTH_TOKEN = "bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI5MS05MzAxOTM4NDc3Iiwib3RoZXIiOm51bGwsImlkIjoxMTYzMzcsInR5cGUiOjIsImV4cCI6MTc4NzI5OTcxMCwiaWF0IjoxNzg3MjEzMzEwLCJhdXRob3JpdGllcyI6W10sImp0aSI6IjlmMDIwZTMwLTA2MzktNGQxMS05NmUyLWQ4MGUyNmM5OTY0NyJ9.BwBC94B7SgN7QWqq19AMXGJTS2lOTLE51ipAcgz0RDto4nvy_f7SP_BU_-vCm1dK2DRxgL2IrBiH8gVObPo0bvUFKx5K1kw6ysgnnmkEFIFIO1WrY7_5BEjp8Ee_iv0kOGO9tn8PxY_-pdJqyKwDferPha9PJ5JZf-iWmweAxPI";
-    const X_AUTH_TOKEN = "bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI5MS05MzAxOTM4NDc3Iiwib3RoZXIiOm51bGwsImlkIjoxMTYzMzcsInR5cGUiOjIsImV4cCI6MTc3MjI4ODYzOCwiaWF0IjoxNzg3MjEzMzEwLCJhdXRob3JpdGllcyI6W10sImp0aSI6IjI1ODY3ZDc0LTUyMWEtNDljZS1iNDQ3LTE1Njc4ZTQ0NmJkOCJ9.F_D3xKV87eZMfii_uCnuga11uA4TaCI_yO55vhnjOZyXcJgyJxYUCu8MB9HSMIAelTk-HB1bCEnVO1Yhmefx1RVGYqnxvyFGsgMsPHMEh28vHHLIZA6SyPjLkcUYJHUWwTMJ7Iywd_zsF9h_OIFfULMNuviQMgKMaiZgBXqKLVE";
+    // Request Payload
+    const payload = req.body && Object.keys(req.body).length > 0 
+        ? req.body 
+        : {
+            "pageIndex": 1,
+            "pageSize": 10,
+            "optionId": "123"
+        };
 
     try {
-        const response = await axios.post(TARGET_API, PAYLOAD, {
+        const response = await axios.post(TARGET_API, payload, {
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': AUTH_TOKEN,
-                'x-authorization': X_AUTH_TOKEN,
-                'Origin': 'https://01k3.com',
-                'Referer': 'https://01k3.com/',
-                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
+                'authority': '01k3.com',
+                'accept': 'application/json, text/plain, */*',
+                'accept-language': 'en',
+                'content-type': 'application/json;charset=UTF-8',
+                'authorization': req.headers['authorization'] || AUTH_TOKEN,
+                'x-authorization': req.headers['x-authorization'] || X_AUTH_TOKEN,
+                'origin': 'https://01k3.com',
+                'referer': 'https://01k3.com/',
+                'sec-ch-ua': '"Chromium";v="137", "Not/A)Brand";v="24"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Linux"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
+                'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
             },
-            timeout: 8000
+            timeout: 10000
         });
 
-        res.status(200).json(response.data);
+        return res.status(200).json(response.data);
     } catch (error) {
-        res.status(500).json({ error: "Fetch Failed", details: error.message });
+        if (error.response) {
+            return res.status(error.response.status).json(error.response.data);
+        }
+        return res.status(500).json({ error: "Proxy Error", message: error.message });
     }
 };
-
